@@ -15,8 +15,40 @@ df_free = df_sorted[df_sorted['is_free'] == True]
 df_paid = df_sorted[df_sorted['is_free'] == False]
 df_samePublisher = df_sorted[df_sorted['publishers'].apply(lambda x: isinstance(x, list) and 'Valve' in x)]
 
-for index, row in df_samePublisher.iterrows():
+paid_games_and_score = []
+free_games_and_score = []
+sorted_games_and_score = []
+null_games_and_score = []
+
+        
+for index, row in df.iterrows():
+    name = row['name']
+    score = row['metacritic']['score']
+    if score == 0:
+        game_info = f"Jogo: {name}, Nota: {score}"
+        null_games_and_score.append(game_info)
+        # print(game_info)
+
+for index, row in df_sorted.iterrows():
     name = row['name']
     score = row['metacritic']['score']
     if score != 0:
-        print(f"Jogo: {name}, Nota: {score}")
+        game_info = f"Jogo: {name}, Nota: {score}"
+        sorted_games_and_score.append(game_info)
+        # print(game_info)
+
+for index, row in df_free.iterrows():
+    name = row['name']
+    score = row['metacritic']['score']
+    if score != 0:
+        game_info = f"Jogo: {name}, Nota: {score}"
+        free_games_and_score.append(game_info)
+        # print(game_info)
+
+for index, row in df_paid.iterrows():
+    name = row['name']
+    score = row['metacritic']['score']
+    if score != 0:
+        game_info = f"Jogo: {name}, Nota: {score}"
+        paid_games_and_score.append(game_info)
+        # print(game_info)
