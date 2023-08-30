@@ -58,7 +58,7 @@ def update_bar_graph(toggle, games):
     Input(ThemeSwitchAIO.ids.switch('theme'), 'value')
 )
 def update_scatter_graph(toggle):
-    templates = template_theme1 if toggle else template_theme2
+    templates = template_theme1 if toggle else template_theme2;
     fig = px.scatter(df_paid_games_score, x='Notas', y='Jogos', color='Notas', title='Outro Título')
     fig.update_layout(xaxis_title='Jogos', yaxis_title='Notas', xaxis_tickangle=-45)
 
