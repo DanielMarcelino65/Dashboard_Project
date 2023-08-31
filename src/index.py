@@ -26,19 +26,15 @@ app.layout = dbc.Container([
     ]),
     dbc.Row([
         dbc.Col([
-            dcc.Graph(id='bar_graph')
+            dcc.Graph(id='bar_graph'),
+            dcc.Dropdown(id='game_picker', options=game_options, multi=True, value=[game['label'] for game in game_options[:10] + game_options[-10:]])
         ])
     ]),
     dbc.Row([
-        dbc.Col([
-            dcc.Dropdown(id='game_picker', options=game_options, multi=True, value=[game['label'] for game in game_options[:10] + game_options[-10:]]),
-        ])
+        dcc.Graph(id='scatter_graph')
     ]),
     dbc.Row([
-        dcc.Graph(id='scatter_graph'),
-    ]),
-    dbc.Row([
-        dcc.Graph(id='line_graph'),  # Novo componente para o gráfico de linhas
+        dcc.Graph(id='line_graph')
     ]),
     dbc.Row([
         dcc.Graph(id='pie_chart'),
@@ -72,14 +68,14 @@ def update_bar_graph(toggle, games):
     Input(ThemeSwitchAIO.ids.switch('theme'), 'value')
 )
 def update_scatter_graph(toggle):
-    templates = template_theme1 if toggle else template_theme2;
+    templates = template_theme1 if toggle else template_theme2
     fig = px.scatter(df_paid_games_score, x='Notas', y='Jogos', color='Notas', title='Outro Título')
     fig.update_layout(xaxis_title='Jogos', yaxis_title='Notas', xaxis_tickangle=-45)
 
     return fig
 
 @app.callback(
-    Output('line_graph', 'figure'),  # Update the correct graph id here
+    Output('line_graph', 'figure'),
     Input(ThemeSwitchAIO.ids.switch('theme'), 'value')
 )
 def update_line_graph(toggle):
@@ -116,9 +112,7 @@ def update_funnel_chart(toggle, selected_games):
     
     if selected_games:
         filtered_df = non_zero_note_counts[non_zero_note_counts['Notas'].isin(selected_games)]
-        fig = px.funnel(filtered_df, x='Notas', y='Count')
-
-        fig.update_traces(textinfo='label+percent+text', hoverinfo='label+percent+text')
+        fig = px.funnel(filtered_df, x='Count', y='Notas')
 
     return fig
 
