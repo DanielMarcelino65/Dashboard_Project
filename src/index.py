@@ -20,7 +20,7 @@ app.layout = dbc.Container([
             ThemeSwitchAIO(aio_id='theme', themes=[url_theme1, url_theme2]),
         ]),
         dbc.Col([
-            html.H1('Título do Gráfico'),
+            html.H1('Steam Games 2023'),
         ])
     ]),
     dbc.Row([
@@ -34,10 +34,14 @@ app.layout = dbc.Container([
         ])
     ]),
     dbc.Row([
-        dcc.Graph(id='scatter_graph')
+        dcc.Graph(id='scatter_graph'),
     ]),
     dbc.Row([
         dcc.Graph(id='line_graph'),  # Novo componente para o gráfico de linhas
+    ]),
+    dbc.Row([
+        dcc.Dropdown(id='game_picker_pie', options=game_options, multi=True, value=[game['label'] for game in game_options[:4] + game_options[-4:]]),
+        dcc.Graph(id='pie_chart')
     ]),
 ])
 
@@ -48,6 +52,10 @@ app.layout = dbc.Container([
 )
 def update_bar_graph(toggle, games):
     templates = template_theme1 if toggle else template_theme2
+    
+    if 'Valor Inicial' not in games:
+        games.append('Valor Inicial')
+
     filtered_df = df_paid_games_score[df_paid_games_score['Jogos'].isin(games)]
     
     fig = px.bar(filtered_df, x='Jogos', y='Notas', title='Notas dos Jogos', color='Notas')
@@ -76,6 +84,26 @@ def update_line_graph(toggle):
 
     return fig
 
+@app.callback(
+    Output('pie_chart', 'figure'),
+    Input(ThemeSwitchAIO.ids.switch('theme'), 'value'),
+    Input('game_picker_pie', 'value')
+)
+def update_pie_chart(toggle, selected_games):
+    templates = template_theme1 if toggle else template_theme2
+
+    if selected_games:
+        filtered_df = df_paid_games_score[df_paid_games_score['Jogos'].isin(selected_games)]
+        note_counts_games = filtered_df['Notas'].value_counts().reset_index()
+        note_counts_games.columns = ['Notas', 'Count']
+    
+        non_zero_note_counts = note_counts_games[note_counts_games['Count'] > 0]
+        fig = px.pie(non_zero_note_counts, names='Notas', values='Count', title='Pizza minha e pizza nossa paizão')
+
+        game_names = filtered_df['Jogos']
+        fig.update_traces(textinfo='label+percent+text', hoverinfo='label+percent+text', text=game_names)
+
+        return fig
 
 if __name__ == '__main__':
     app.run_server(debug=True, port = 8051)
