@@ -74,5 +74,7 @@ df_paid_games_score = pd.DataFrame({'Jogos': paid_games, 'Notas': paid_scores})
 df_paid_games_score = df_paid_games_score.drop_duplicates(subset=['Jogos'], keep='first')
 note_counts = df_paid_games_score['Notas'].value_counts().reset_index()
 note_counts.columns = ['Notas', 'Count']
+non_zero_note_counts = note_counts[note_counts['Count'] > 0]
+non_zero_note_counts = non_zero_note_counts.sort_values(by='Notas', ascending=False)
 df_paid_games_score = df_paid_games_score.merge(note_counts, on='Notas', how='right')
 df_paid_games_score = df_paid_games_score.sort_values(by='Notas', ascending=False)
