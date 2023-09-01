@@ -1,11 +1,16 @@
 import json
 import pandas as pd
+import plotly.express as px
 
 def json_loads_single_quotes(text):
     return json.loads(text.replace("'", "\""))
 
 df = pd.read_csv('./assets/steam_app_data.csv')
 
+years = df['release_date'].apply(lambda x: str(x).split(',')[-1].replace("'", "").replace("}", "").strip())
+games = df['name']
+df_years_games = pd.DataFrame({'Anos': years, 'Jogos': games})
+count_by_year = df_years_games['Anos'].value_counts().sort_index()
 df['metacritic'] = df['metacritic'].fillna('{"score": 0}')
 df['metacritic'] = df['metacritic'].apply(json_loads_single_quotes)
 df['score'] = df['metacritic'].apply(lambda x: x['score'])
