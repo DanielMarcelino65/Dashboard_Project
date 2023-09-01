@@ -64,34 +64,35 @@ for index, row in df_paid.iterrows():
 paid_games = []
 paid_scores = []
 for game_info in paid_games_and_score:
-    parts = game_info.split(', ')
-    if len(parts) >= 2:
-        game_name = parts[0].split(': ')[1]
-        game_score_parts = parts[1].split(': ')
-        if len(game_score_parts) >= 2:
-            game_score = game_score_parts[1]
+    game_name_start = game_info.find('Jogo: ')
+    game_name_end = game_info.find(', Nota:')
+    
+    if game_name_start != -1 and game_name_end != -1:
+        game_name = game_info[game_name_start + len('Jogo: '):game_name_end].strip()
+        game_score_start = game_info.find('Nota: ')
+        if game_score_start != -1:
+            game_score = game_info[game_score_start + len('Nota: '):].strip()
             paid_games.append(game_name)
             paid_scores.append(game_score)
-            # print("Game Name:", game_name)
-            # print("Game Score:", game_score)
 
 free_games = []
 free_scores = []
 for game_info in free_games_and_score:
-    parts = game_info.split(', ')
-    if len(parts) >= 2:
-        game_name = parts[0].split(': ')[1]
-        game_score_parts = parts[1].split(': ')
-        if len(game_score_parts) >= 2:
-            game_score = game_score_parts[1]
+    game_name_start = game_info.find('Jogo: ')
+    game_name_end = game_info.find(', Nota:')
+    
+    if game_name_start != -1 and game_name_end != -1:
+        game_name = game_info[game_name_start + len('Jogo: '):game_name_end].strip()
+        game_score_start = game_info.find('Nota: ')
+        if game_score_start != -1:
+            game_score = game_info[game_score_start + len('Nota: '):].strip()
             free_games.append(game_name)
             free_scores.append(game_score)
-            # print("Game Name:", game_name)
-            # print("Game Score:", game_score)
 df_free_games_score = pd.DataFrame({'Jogos': free_games, 'Notas': free_scores})
 free_note_counts = df_free_games_score['Notas'].value_counts().reset_index()
 free_note_counts.columns = ['Notas', 'Count']
 non_zero_free_note_counts = free_note_counts[free_note_counts['Count'] > 0]
+non_zero_free_note_counts = non_zero_free_note_counts.sort_values(by='Notas', ascending=False)
 df_paid_games_score = pd.DataFrame({'Jogos': paid_games, 'Notas': paid_scores})
 df_paid_games_score = df_paid_games_score.drop_duplicates(subset=['Jogos'], keep='first')
 note_counts = df_paid_games_score['Notas'].value_counts().reset_index()

@@ -1,5 +1,5 @@
 from app import * 
-from data import df_paid_games_score, non_zero_note_counts, non_zero_free_note_counts
+from data import df_paid_games_score, non_zero_note_counts, non_zero_free_note_counts, df_free_games_score
 from dash import html, dcc, Input, Output
 import plotly.express as px
 import plotly.graph_objects as go
@@ -9,10 +9,18 @@ import pandas as pd
 url_theme1 = dbc.themes.VAPOR
 url_theme2 = dbc.themes.FLATLY
 
+content = ''
+content2 = ''
 template_theme1 = 'vapor'
 template_theme2 = 'flatly'
 
+def truncate_text(text, max_length=30):
+    if len(text) > max_length:
+        return text[:max_length] + "..."
+    return text
+
 game_options = [{'label': x, 'value': x} for x in df_paid_games_score['Jogos'].unique()]
+free_game_options = [{'label': x, 'value': x} for x in df_free_games_score['Jogos'].unique()]
 note_options =[{ 'label': x, 'value': x} for x in non_zero_note_counts['Notas'].unique()]
 free_note_options =[{ 'label': x, 'value': x} for x in non_zero_free_note_counts['Notas'].unique()]
 
@@ -24,11 +32,18 @@ app.layout = dbc.Container([
         html.H1('Steam Games 2023', className='text-center')
     ]),
     dbc.Row([
-        dcc.Graph(id='bar_graph'),
+        dcc.Dropdown(id='game_picker', options=game_options, multi=True, value=[game['label'] for game in game_options[:10] + game_options[-10:]]),
         dbc.Row([
-            html.Button('Show/hide games', id='show_hide', n_clicks=0, style={'borderRadius': '40px', 'border': '1px solid black', 'width': 'auto', 'margin-left': '10px', 'whiteSpace': 'nowrap', 'padding': '5px', 'background-color': '#ef42f5'}),
-        ], justify='center'),  
-        dcc.Dropdown(id='game_picker', options=game_options, multi=True, value=[game['label'] for game in game_options[:10] + game_options[-10:]])
+            html.Button(content, id='show_hide', n_clicks=0, style={'borderRadius': '40px', 'border': '1px solid black', 'width': 'auto', 'margin-left': '10px', 'whiteSpace': 'nowrap', 'padding': '5px', 'background-color': '#ef42f5', 'fontWeight': 'bold'}),
+        ], justify='center'),
+        dcc.Graph(id='bar_graph'),
+    ]),
+    dbc.Row([
+        dcc.Dropdown(id='game_picker2', options=free_game_options, multi=True, value=[game['label'] for game in free_game_options[:10] + free_game_options[-10:]]),
+        dbc.Row([
+            html.Button(content2, id='show_hide2', n_clicks=0, style={'borderRadius': '40px', 'border': '1px solid black', 'width': 'auto', 'margin-left': '10px', 'whiteSpace': 'nowrap', 'padding': '5px', 'background-color': '#ef42f5', 'fontWeight': 'bold'}),
+        ], justify='center'),
+        dcc.Graph(id='bar_graph2'),
     ]),
     dbc.Row([
         dbc.Col([
@@ -45,15 +60,37 @@ app.layout = dbc.Container([
 
 @app.callback(
     Output('game_picker', 'style'),
+    Output('show_hide', 'children'),
     Input('show_hide', 'n_clicks'),
-    prevent_initial_call=True,
+    Input('show_hide', 'children'),
+    prevent_initial_call=False,
 )
-
-def show_hide(n_clicks):
+def show_hide(n_clicks, children):
     if n_clicks % 2 == 0:
-        return {'display': 'block', 'height': 'auto'}
+        content = 'Esconder jogos'
+        game_picker_style = {'display': 'block', 'height': 'auto'}
     else:
-        return {'display': 'none'}
+        content = 'Mostrar jogos'
+        game_picker_style = {'display': 'none'}
+    
+    return game_picker_style, content
+
+@app.callback(
+    Output('game_picker2', 'style'),
+    Output('show_hide2', 'children'),
+    Input('show_hide2', 'n_clicks'),
+    Input('show_hide2', 'children'),
+    prevent_initial_call=False,
+)
+def show_hide2(n_clicks, children):
+    if n_clicks % 2 == 0:
+        content2 = 'Esconder jogos'
+        game_picker_style = {'display': 'block', 'height': 'auto'}
+    else:
+        content2 = 'Mostrar jogos'
+        game_picker_style = {'display': 'none'}
+    
+    return game_picker_style, content2
 
 @app.callback(
     Output('bar_graph', 'figure'),
@@ -67,10 +104,29 @@ def update_bar_graph(toggle, games):
         games.append('Valor Inicial')
 
     filtered_df = df_paid_games_score[df_paid_games_score['Jogos'].isin(games)]
+    filtered_df['Jogos'] = filtered_df['Jogos'].apply(truncate_text)
     filtered_df.loc[:, 'Notas'] = filtered_df['Notas'].astype(float)
     
     fig = px.bar(filtered_df, x='Jogos', y='Notas', title='Metacritic de Jogos Pagos', color='Jogos', template=templates)
     return fig
+
+@app.callback(
+    Output('bar_graph2', 'figure'),
+    Input(ThemeSwitchAIO.ids.switch('theme'), 'value'),
+    Input('game_picker2', 'value')
+)
+def update_bar_graph(toggle, games):
+    templates = template_theme1 if toggle else template_theme2
+
+    if 'Valor Inicial' not in games:
+        games.append('Valor Inicial')
+
+    filtered_df = df_free_games_score[df_free_games_score['Jogos'].isin(games)]
+    filtered_df.loc[:, 'Notas'] = filtered_df['Notas'].astype(float)
+    
+    fig = px.bar(filtered_df, x='Jogos', y='Notas', title='Metacritic de Jogos Gratuitos', color='Jogos', template=templates)
+    return fig
+
 @app.callback(
     Output('pie_chart', 'figure'),
     Input(ThemeSwitchAIO.ids.switch('theme'), 'value'),
