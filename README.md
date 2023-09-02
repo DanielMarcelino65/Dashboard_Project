@@ -48,7 +48,3 @@ A avaliação será baseada em diversos critérios, incluindo:
 - Apresentação Final (15%):
     - Apresentação clara e organizada do projeto, explicando as escolhas feitas e os insights obtidos.
     - Capacidade de responder a perguntas sobre o projeto de forma concisa e precisa.
-
-## **Links:**
-
-- [Kaggle](https://www.kaggle.com/datasets?authuser=0)
